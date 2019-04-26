@@ -50,7 +50,7 @@ var (
 	maxMsgRecvSize = grpc.MaxCallRecvMsgSize(1 * 1024 * 1024 * 50)
 
 	// Defaults values
-	defaultNamespace     = getEnv("NAMESPACE", "lightningd")
+	defaultNamespace     = getEnv("NAMESPACE", "lnd")
 	defaultListenAddress = getEnv("LISTEN_ADDRESS", ":9113")
 	defaultMetricsPath   = getEnv("TELEMETRY_PATH", "/metrics")
 	defaultRPCHost       = getEnv("RPC_HOST", "localhost")

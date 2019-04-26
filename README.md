@@ -23,7 +23,7 @@ We assume that you have already installed Prometheus and a LND Lightning Node. A
 ```
 Usage of ./lightning-prometheus-exporter:
   -namepsace string
-        The namespace or prefix to use in the exported metrics. The default value can be overwritten by NAMESPACE environment variable (default: lightningd)
+        The namespace or prefix to use in the exported metrics. The default value can be overwritten by NAMESPACE environment variable (default: lnd)
   -web.telemetry-path string
         A path under which to expose metrics. The default value can be overwritten by TELEMETRY_PATH environment variable. (default "/metrics")
   -web.listen-address string
