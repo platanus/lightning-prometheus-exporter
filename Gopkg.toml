@@ -1,0 +1,11 @@
+[[constraint]]
+  name = "github.com/prometheus/client_golang"
+  version = "0.9.1"
+
+[prune]
+  go-tests = true
+  unused-packages = true
+
+[[constraint]]
+  name = "github.com/lightningnetwork/lnd"
+  version = "0.5.2-beta"
