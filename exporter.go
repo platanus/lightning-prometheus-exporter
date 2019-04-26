@@ -55,8 +55,6 @@ var (
 	defaultMetricsPath   = getEnv("TELEMETRY_PATH", "/metrics")
 	defaultRPCHost       = getEnv("RPC_HOST", "localhost")
 	defaultRPCPort       = getEnv("RPC_PORT", "10009")
-	defaultRPCUser       = getEnv("RPC_USER", "")
-	defaultRPCPass       = getEnv("RPC_PASS", "")
 	defaultTLSCertPath   = getEnv("TLS_CERT_PATH", "/root/.lnd")
 	defaultMacaroonPath  = getEnv("MACAROON_PATH", "")
 
@@ -69,10 +67,6 @@ var (
 		"A path under which to expose metrics. The default value can be overwritten by TELEMETRY_PATH environment variable.")
 	rpcHost = flag.String("rpc.host", defaultRPCHost,
 		"Lightning node RPC host. The default value can be overwritten by RPC_HOST environment variable.")
-	rpcUser = flag.String("rpc.user", defaultRPCUser,
-		"Lightning node RPC username. The default value can be overwritten by RPC_USER environment variable.")
-	rpcPass = flag.String("rpc.pass", defaultRPCPass,
-		"Lightning node RPC password. The default value can be overwritten by RPC_PASS environment variable.")
 	rpcPort = flag.String("rpc.port", defaultRPCPort,
 		"Lightning node RPC port. The default value can be overwritten by RPC_PORT environment variable.")
 	tlsCertPath = flag.String("lnd.tls-cert-path", defaultTLSCertPath,

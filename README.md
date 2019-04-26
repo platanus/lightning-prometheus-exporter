@@ -29,14 +29,12 @@ Usage of ./lightning-prometheus-exporter:
   -web.listen-address string
         An address to listen on for web interface and telemetry. The default value can be overwritten by LISTEN_ADDRESS environment variable. (default ":9113")
   -rpc.host string
-        Lightning node RPC host. The default value can be overwritten by RPC_HOST environment variable (default: localhost:8332)
-  -rpc.user string
-        Lightning node RPC username. The default value can be overwritten by RPC_USER environment variable
-  -rpc.pass string
-        Lightning node RPC password. The default value can be overwritten by RPC_PASS environment variable
-  -tlsCertPath string
-        The path to the tls certificate. The default value can be overwritten by TLS_CERT_PATH environment variable
-  -macaroonPath
+        Lightning node RPC host. The default value can be overwritten by RPC_HOST environment variable (default: localhost)
+  -rpc.Port int
+        Lightning node RPC port. The default value can be overwritten by RPC_PORT environment variable (default: 10009)
+  -lnd.tls-cert-path string
+        The path to the tls certificate. The default value can be overwritten by TLS_CERT_PATH environment variable (default: "/root/.lnd")
+  -lnd.macaroon-path
         The path to the read only macaroon. The default value can be overwritten by MACAROON_PATH environment variable
 ```
 
