@@ -20,9 +20,7 @@ func NewLightningCollector(lightningClient *client.LightningClient, namespace st
 	return &LightningCollector{
 		lightningClient: lightningClient,
 		metrics: map[string]*prometheus.Desc{
-			"total_balance":       newGlobalMetric(namespace, "total_balance", "Number of blocks in the longest block chain."),
-			"unconfirmed_balance": newGlobalMetric(namespace, "unconfirmed_balance", "Number of active connections to other peers."),
-			"confirmed_balance":   newGlobalMetric(namespace, "confirmed_balance", "Proof-of-work difficulty as a multiple of the minimum difficulty"),
+			"wallet_balance_satoshis_total": newGlobalMetric(namespace, "wallet_balance_satoshis_total", "The wallet balance.", []string{"status"}),
 		},
 	}
 }
@@ -46,10 +44,8 @@ func (c *LightningCollector) Collect(ch chan<- prometheus.Metric) {
 		return
 	}
 
-	ch <- prometheus.MustNewConstMetric(c.metrics["total_balance"],
-		prometheus.GaugeValue, float64(stats.Wallet.TotalBallance))
-	ch <- prometheus.MustNewConstMetric(c.metrics["unconfirmed_balance"],
-		prometheus.GaugeValue, float64(stats.Wallet.UnconfirmedBalance))
-	ch <- prometheus.MustNewConstMetric(c.metrics["confirmed_balance"],
-		prometheus.GaugeValue, float64(stats.Wallet.ConfirmedBalance))
+	ch <- prometheus.MustNewConstMetric(c.metrics["wallet_balance_satoshis_total"],
+		prometheus.GaugeValue, float64(stats.Wallet.UnconfirmedBalance), "unconfirmed")
+	ch <- prometheus.MustNewConstMetric(c.metrics["wallet_balance_satoshis_total"],
+		prometheus.GaugeValue, float64(stats.Wallet.ConfirmedBalance), "confirmed")
 }
