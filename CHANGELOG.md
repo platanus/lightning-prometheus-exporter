@@ -3,7 +3,7 @@
 ## Unreleased
 
 * Fix wallet ballance to use a single metric with labels
-  `wallet_balance_satoshis_total`, with `confirmed` and `unconfirmed` labels
+  `wallet_balance_satoshis`, with `confirmed` and `unconfirmed` labels
 * Change default prefix to `lnd`
 * Remove unused flags
 
