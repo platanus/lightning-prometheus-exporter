@@ -26,6 +26,7 @@ type StubWallet struct {
 }
 
 type StubNode struct {
+	Peers            uint32
 	PendingChannels  uint32
 	ActiveChannels   uint32
 	InactiveChannels uint32
@@ -74,6 +75,8 @@ func (client *LightningClient) GetStats() (*Stats, error) {
 	if err != nil {
 		log.Fatal(err)
 	}
+	peers := info.NumPeers
+	stats.Node.Peers = peers
 
 	numInactiveChannels := info.NumInactiveChannels
 	stats.Node.InactiveChannels = numInactiveChannels
