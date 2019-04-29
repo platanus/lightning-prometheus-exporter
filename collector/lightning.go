@@ -23,6 +23,7 @@ func NewLightningCollector(lightningClient *client.LightningClient, namespace st
 			"wallet_balance_satoshis": newGlobalMetric(namespace, "wallet_balance_satoshis", "The wallet balance.", []string{"status"}),
 			"peers":                   newGlobalMetric(namespace, "peers", "Number of currently connected peers.", []string{}),
 			"channels":                newGlobalMetric(namespace, "channels", "Number of channels", []string{"status"}),
+			"block_height":            newGlobalMetric(namespace, "block_height", "The node’s current view of the height of the best block", []string{}),
 		},
 	}
 }
@@ -59,5 +60,7 @@ func (c *LightningCollector) Collect(ch chan<- prometheus.Metric) {
 		prometheus.GaugeValue, float64(stats.Node.PendingChannels), "pending")
 	ch <- prometheus.MustNewConstMetric(c.metrics["channels"],
 		prometheus.GaugeValue, float64(stats.Node.InactiveChannels), "inactive")
+	ch <- prometheus.MustNewConstMetric(c.metrics["block_height"],
+		prometheus.GaugeValue, float64(stats.Node.BlockHeight))
 
 }

@@ -30,6 +30,7 @@ type StubNode struct {
 	PendingChannels  uint32
 	ActiveChannels   uint32
 	InactiveChannels uint32
+	BlockHeight      uint32
 }
 
 // NewLightningClient creates an LightningClient.
@@ -86,6 +87,9 @@ func (client *LightningClient) GetStats() (*Stats, error) {
 
 	numPendingChannels := info.NumPendingChannels
 	stats.Node.PendingChannels = numPendingChannels
+
+	blockHeight := info.BlockHeight
+	stats.Node.BlockHeight = blockHeight
 
 	return &stats, nil
 }
