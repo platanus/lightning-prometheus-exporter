@@ -31,6 +31,7 @@ type StubNode struct {
 	ActiveChannels   uint32
 	InactiveChannels uint32
 	BlockHeight      uint32
+	SyncedToChain    uint8
 }
 
 // NewLightningClient creates an LightningClient.
@@ -91,5 +92,15 @@ func (client *LightningClient) GetStats() (*Stats, error) {
 	blockHeight := info.BlockHeight
 	stats.Node.BlockHeight = blockHeight
 
+	syncedToChain := info.SyncedToChain
+	stats.Node.SyncedToChain = boolToInt(syncedToChain)
+
 	return &stats, nil
+}
+
+func boolToInt(arg bool) uint8 {
+	if arg {
+		return 1
+	}
+	return 0
 }
