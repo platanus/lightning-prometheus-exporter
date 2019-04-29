@@ -15,8 +15,9 @@ type LightningClient struct {
 
 // Stats represents node metrics.
 type Stats struct {
-	Wallet StubWallet
-	Node   StubNode
+	Wallet          StubWallet
+	Node            StubNode
+	PendingChannels StubPendingChannels
 }
 
 type StubWallet struct {
@@ -32,6 +33,14 @@ type StubNode struct {
 	InactiveChannels uint32
 	BlockHeight      uint32
 	SyncedToChain    uint8
+}
+
+type StubPendingChannels struct {
+	TotalLimboBalance           int64
+	PendingOpenChannels         int
+	PendingClosingChannels      int
+	PendingForceClosingChannels int
+	WaitingCloseChannels        int
 }
 
 // NewLightningClient creates an LightningClient.
@@ -94,6 +103,28 @@ func (client *LightningClient) GetStats() (*Stats, error) {
 
 	syncedToChain := info.SyncedToChain
 	stats.Node.SyncedToChain = boolToInt(syncedToChain)
+
+	// Pending Channels
+	reqPendingChannels := &lnrpc.PendingChannelsRequest{}
+	pendingChannels, err := client.rpcclient.PendingChannels(ctxb, reqPendingChannels)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	totalLimboBalance := pendingChannels.TotalLimboBalance
+	stats.PendingChannels.TotalLimboBalance = totalLimboBalance
+
+	pendingOpenChannels := pendingChannels.PendingOpenChannels
+	stats.PendingChannels.PendingOpenChannels = len(pendingOpenChannels)
+
+	pendingClosingChannels := pendingChannels.PendingClosingChannels
+	stats.PendingChannels.PendingClosingChannels = len(pendingClosingChannels)
+
+	pendingForceClosingChannels := pendingChannels.PendingForceClosingChannels
+	stats.PendingChannels.PendingForceClosingChannels = len(pendingForceClosingChannels)
+
+	waitingCloseChannels := pendingChannels.WaitingCloseChannels
+	stats.PendingChannels.WaitingCloseChannels = len(waitingCloseChannels)
 
 	return &stats, nil
 }
