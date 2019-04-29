@@ -13,17 +13,22 @@ type LightningClient struct {
 	rpcclient lnrpc.LightningClient
 }
 
-// NodeStats represents node metrics.
-type NodeStats struct {
+// Stats represents node metrics.
+type Stats struct {
 	Wallet StubWallet
-	// ConnectionCount int64
-	// Difficulty      float64
+	Node   StubNode
 }
 
 type StubWallet struct {
 	TotalBallance      int64
 	ConfirmedBalance   int64
 	UnconfirmedBalance int64
+}
+
+type StubNode struct {
+	PendingChannels  uint32
+	ActiveChannels   uint32
+	InactiveChannels uint32
 }
 
 // NewLightningClient creates an LightningClient.
@@ -41,25 +46,43 @@ func NewLightningClient(rpcclient lnrpc.LightningClient) (*LightningClient, erro
 }
 
 // GetStats fetches the node metrics.
-func (client *LightningClient) GetStats() (*NodeStats, error) {
+func (client *LightningClient) GetStats() (*Stats, error) {
 
-	var stats NodeStats
+	var stats Stats
 
 	ctxb := context.Background()
 
-	req := &lnrpc.WalletBalanceRequest{}
-	resp, err := client.rpcclient.WalletBalance(ctxb, req)
+	reqWallet := &lnrpc.WalletBalanceRequest{}
+	wallet, err := client.rpcclient.WalletBalance(ctxb, reqWallet)
 	if err != nil {
 		log.Fatal(err)
 	}
-	totalBalance := resp.TotalBalance
+
+	// Wallet
+	totalBalance := wallet.TotalBalance
 	stats.Wallet.TotalBallance = totalBalance
 
-	unconfirmedBalance := resp.UnconfirmedBalance
+	unconfirmedBalance := wallet.UnconfirmedBalance
 	stats.Wallet.UnconfirmedBalance = unconfirmedBalance
 
-	confirmedBalance := resp.ConfirmedBalance
+	confirmedBalance := wallet.ConfirmedBalance
 	stats.Wallet.ConfirmedBalance = confirmedBalance
+
+	// Info
+	reqInfo := &lnrpc.GetInfoRequest{}
+	info, err := client.rpcclient.GetInfo(ctxb, reqInfo)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	numInactiveChannels := info.NumInactiveChannels
+	stats.Node.InactiveChannels = numInactiveChannels
+
+	numActiveChannels := info.NumActiveChannels
+	stats.Node.ActiveChannels = numActiveChannels
+
+	numPendingChannels := info.NumPendingChannels
+	stats.Node.PendingChannels = numPendingChannels
 
 	return &stats, nil
 }

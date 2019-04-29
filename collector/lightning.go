@@ -21,6 +21,7 @@ func NewLightningCollector(lightningClient *client.LightningClient, namespace st
 		lightningClient: lightningClient,
 		metrics: map[string]*prometheus.Desc{
 			"wallet_balance_satoshis": newGlobalMetric(namespace, "wallet_balance_satoshis", "The wallet balance.", []string{"status"}),
+			"channels":                newGlobalMetric(namespace, "channels", "Number of channels", []string{"status"}),
 		},
 	}
 }
@@ -48,4 +49,12 @@ func (c *LightningCollector) Collect(ch chan<- prometheus.Metric) {
 		prometheus.GaugeValue, float64(stats.Wallet.UnconfirmedBalance), "unconfirmed")
 	ch <- prometheus.MustNewConstMetric(c.metrics["wallet_balance_satoshis"],
 		prometheus.GaugeValue, float64(stats.Wallet.ConfirmedBalance), "confirmed")
+
+	ch <- prometheus.MustNewConstMetric(c.metrics["channels"],
+		prometheus.GaugeValue, float64(stats.Node.ActiveChannels), "active")
+	ch <- prometheus.MustNewConstMetric(c.metrics["channels"],
+		prometheus.GaugeValue, float64(stats.Node.PendingChannels), "pending")
+	ch <- prometheus.MustNewConstMetric(c.metrics["channels"],
+		prometheus.GaugeValue, float64(stats.Node.InactiveChannels), "inactive")
+
 }
