@@ -36,6 +36,10 @@ type PendingChannelsStats struct {
 	WaitingCloseChannels        int
 }
 
+type ChannelsBalanceStats struct {
+	TotalBalance int64
+}
+
 // NewLightningClient creates an LightningClient.
 func NewLightningClient(rpcclient lnrpc.LightningClient) (*LightningClient, error) {
 
@@ -121,6 +125,23 @@ func (client *LightningClient) GetPendingChannelsStats() (*PendingChannelsStats,
 	stats.PendingClosingChannels = len(info.PendingClosingChannels)
 	stats.PendingForceClosingChannels = len(info.PendingForceClosingChannels)
 	stats.WaitingCloseChannels = len(info.WaitingCloseChannels)
+
+	return &stats, nil
+}
+
+// GetChannelsBalanceStats get pending channels status
+func (client *LightningClient) GetChannelsBalanceStats() (*ChannelsBalanceStats, error) {
+	var stats ChannelsBalanceStats
+
+	ctxb := context.Background()
+
+	req := &lnrpc.ChannelBalanceRequest{}
+	info, err := client.rpcclient.ChannelBalance(ctxb, req)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	stats.TotalBalance = info.Balance
 
 	return &stats, nil
 }

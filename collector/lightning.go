@@ -28,6 +28,7 @@ func NewLightningCollector(lightningClient *client.LightningClient, namespace st
 			"channels_limbo_balance_satoshis": newGlobalMetric(namespace, "channel_limbo_balance_satoshis", "The balance in satoshis encumbered in pending channels", []string{}),
 			"channels_pending":                newGlobalMetric(namespace, "channel_pending", "The total pending channels", []string{"status", "forced"}),
 			"channels_waiting_close":          newGlobalMetric(namespace, "channel_waiting_close", "Channels waiting for closing tx to confirm", []string{}),
+			"channels_balance_satoshis":       newGlobalMetric(namespace, "channels_balance_satoshis", "Sum of all channel funds available", []string{}),
 		},
 	}
 }
@@ -53,6 +54,7 @@ func (c *LightningCollector) Collect(ch chan<- prometheus.Metric) {
 	walletStats, _ := c.lightningClient.GetWalletStats()
 	nodeStats, _ := c.lightningClient.GetInfoStats()
 	pendingChannelsStats, _ := c.lightningClient.GetPendingChannelsStats()
+	channelBalanceStats, _ := c.lightningClient.GetChannelsBalanceStats()
 
 	ch <- prometheus.MustNewConstMetric(c.metrics["wallet_balance_satoshis"],
 		prometheus.GaugeValue, float64(walletStats.UnconfirmedBalance), "unconfirmed")
@@ -82,4 +84,7 @@ func (c *LightningCollector) Collect(ch chan<- prometheus.Metric) {
 		prometheus.GaugeValue, float64(pendingChannelsStats.PendingForceClosingChannels), "closing", "true")
 	ch <- prometheus.MustNewConstMetric(c.metrics["channels_waiting_close"],
 		prometheus.GaugeValue, float64(pendingChannelsStats.WaitingCloseChannels))
+
+	ch <- prometheus.MustNewConstMetric(c.metrics["channels_balance_satoshis"],
+		prometheus.GaugeValue, float64(channelBalanceStats.TotalBalance))
 }

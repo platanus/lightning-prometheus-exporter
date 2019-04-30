@@ -3,6 +3,7 @@
 ## Unreleased
 
 * Add `process` and `go` metrics.
+* Add `channels_balance_satoshis` metric
 
 ## 0.2.0
 
