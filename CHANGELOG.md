@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+* Add `process` and `go` metrics.
+
 ## 0.2.0
 
 * Fix wallet ballance to use a single metric with labels

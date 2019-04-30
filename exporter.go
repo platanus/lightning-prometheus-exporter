@@ -57,6 +57,7 @@ var (
 	defaultRPCPort       = getEnv("RPC_PORT", "10009")
 	defaultTLSCertPath   = getEnv("TLS_CERT_PATH", "/root/.lnd")
 	defaultMacaroonPath  = getEnv("MACAROON_PATH", "")
+	defaultGoMetrics, _  = strconv.ParseBool(getEnv("GO_METRICS", "false"))
 
 	// Command-line flags
 	namespace = flag.String("namespace", defaultNamespace,
@@ -73,14 +74,14 @@ var (
 		"The path to the tls certificate. The default value can be overwritten by TLS_CERT_PATH environment variable.")
 	macaroonPath = flag.String("lnd.macaroon-path", defaultMacaroonPath,
 		"The path to the read only macaroon. The default value can be overwritten by MACAROON_PATH environment variable.")
+	goMetrics = flag.Bool("go-metrics", defaultGoMetrics,
+		"Enable process and go metrics from go client library. The default value can be overwritten by GO_METRICS environmental variable.")
 )
 
 func main() {
 	flag.Parse()
 
 	log.Printf("Starting Lightning Prometheus Exporter Version=%v GitCommit=%v", version, gitCommit)
-
-	registry := prometheus.NewRegistry()
 
 	var connCfg = getClientConn()
 	rpcclient := lnrpc.NewLightningClient(connCfg)
@@ -90,7 +91,14 @@ func main() {
 		log.Fatalf("Could not create Lightning Rpc Client: %v", err)
 	}
 
+	// registry
+	registry := prometheus.NewRegistry()
 	registry.MustRegister(collector.NewLightningCollector(client, *namespace))
+
+	if *goMetrics {
+		registry.MustRegister(prometheus.NewGoCollector())
+		registry.MustRegister(prometheus.NewProcessCollector(prometheus.ProcessCollectorOpts{}))
+	}
 
 	http.Handle(*metricsPath, promhttp.HandlerFor(registry, promhttp.HandlerOpts{}))
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {

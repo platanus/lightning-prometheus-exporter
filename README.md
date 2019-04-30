@@ -36,6 +36,8 @@ Usage of ./lightning-prometheus-exporter:
         The path to the tls certificate. The default value can be overwritten by TLS_CERT_PATH environment variable (default: "/root/.lnd")
   -lnd.macaroon-path
         The path to the read only macaroon. The default value can be overwritten by MACAROON_PATH environment variable
+  -go-metrics bool
+        Enable process and go metrics from go client library. The default value can be overwritten by GO_METRICS environmental variable.
 ```
 
 ### Exported Metrics
