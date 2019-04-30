@@ -45,38 +45,41 @@ func (c *LightningCollector) Collect(ch chan<- prometheus.Metric) {
 	c.mutex.Lock() // To protect metrics from concurrent collects
 	defer c.mutex.Unlock()
 
-	stats, err := c.lightningClient.GetStats()
+	_, err := c.lightningClient.GetStats()
 	if err != nil {
 		log.Printf("Error getting stats: %v", err)
 		return
 	}
+	walletStats, _ := c.lightningClient.GetWalletStats()
+	nodeStats, _ := c.lightningClient.GetInfoStats()
+	pendingChannelsStats, _ := c.lightningClient.GetPendingChannelsStats()
 
 	ch <- prometheus.MustNewConstMetric(c.metrics["wallet_balance_satoshis"],
-		prometheus.GaugeValue, float64(stats.Wallet.UnconfirmedBalance), "unconfirmed")
+		prometheus.GaugeValue, float64(walletStats.UnconfirmedBalance), "unconfirmed")
 	ch <- prometheus.MustNewConstMetric(c.metrics["wallet_balance_satoshis"],
-		prometheus.GaugeValue, float64(stats.Wallet.ConfirmedBalance), "confirmed")
+		prometheus.GaugeValue, float64(walletStats.ConfirmedBalance), "confirmed")
 
 	ch <- prometheus.MustNewConstMetric(c.metrics["peers"],
-		prometheus.GaugeValue, float64(stats.Node.Peers))
+		prometheus.GaugeValue, float64(nodeStats.Peers))
 	ch <- prometheus.MustNewConstMetric(c.metrics["channels"],
-		prometheus.GaugeValue, float64(stats.Node.ActiveChannels), "active")
+		prometheus.GaugeValue, float64(nodeStats.ActiveChannels), "active")
 	ch <- prometheus.MustNewConstMetric(c.metrics["channels"],
-		prometheus.GaugeValue, float64(stats.Node.PendingChannels), "pending")
+		prometheus.GaugeValue, float64(nodeStats.PendingChannels), "pending")
 	ch <- prometheus.MustNewConstMetric(c.metrics["channels"],
-		prometheus.GaugeValue, float64(stats.Node.InactiveChannels), "inactive")
+		prometheus.GaugeValue, float64(nodeStats.InactiveChannels), "inactive")
 	ch <- prometheus.MustNewConstMetric(c.metrics["block_height"],
-		prometheus.GaugeValue, float64(stats.Node.BlockHeight))
+		prometheus.GaugeValue, float64(nodeStats.BlockHeight))
 	ch <- prometheus.MustNewConstMetric(c.metrics["synced_to_chain"],
-		prometheus.GaugeValue, float64(stats.Node.SyncedToChain))
+		prometheus.GaugeValue, float64(nodeStats.SyncedToChain))
 
 	ch <- prometheus.MustNewConstMetric(c.metrics["channels_limbo_balance_satoshis"],
-		prometheus.GaugeValue, float64(stats.PendingChannels.TotalLimboBalance))
+		prometheus.GaugeValue, float64(pendingChannelsStats.TotalLimboBalance))
 	ch <- prometheus.MustNewConstMetric(c.metrics["channels_pending"],
-		prometheus.GaugeValue, float64(stats.PendingChannels.PendingOpenChannels), "opening", "false")
+		prometheus.GaugeValue, float64(pendingChannelsStats.PendingOpenChannels), "opening", "false")
 	ch <- prometheus.MustNewConstMetric(c.metrics["channels_pending"],
-		prometheus.GaugeValue, float64(stats.PendingChannels.PendingClosingChannels), "closing", "false")
+		prometheus.GaugeValue, float64(pendingChannelsStats.PendingClosingChannels), "closing", "false")
 	ch <- prometheus.MustNewConstMetric(c.metrics["channels_pending"],
-		prometheus.GaugeValue, float64(stats.PendingChannels.PendingForceClosingChannels), "closing", "true")
+		prometheus.GaugeValue, float64(pendingChannelsStats.PendingForceClosingChannels), "closing", "true")
 	ch <- prometheus.MustNewConstMetric(c.metrics["channels_waiting_close"],
-		prometheus.GaugeValue, float64(stats.PendingChannels.WaitingCloseChannels))
+		prometheus.GaugeValue, float64(pendingChannelsStats.WaitingCloseChannels))
 }

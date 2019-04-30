@@ -13,20 +13,13 @@ type LightningClient struct {
 	rpcclient lnrpc.LightningClient
 }
 
-// Stats represents node metrics.
-type Stats struct {
-	Wallet          StubWallet
-	Node            StubNode
-	PendingChannels StubPendingChannels
-}
-
-type StubWallet struct {
+type WalletStats struct {
 	TotalBallance      int64
 	ConfirmedBalance   int64
 	UnconfirmedBalance int64
 }
 
-type StubNode struct {
+type NodeStats struct {
 	Peers            uint32
 	PendingChannels  uint32
 	ActiveChannels   uint32
@@ -35,7 +28,7 @@ type StubNode struct {
 	SyncedToChain    uint8
 }
 
-type StubPendingChannels struct {
+type PendingChannelsStats struct {
 	TotalLimboBalance           int64
 	PendingOpenChannels         int
 	PendingClosingChannels      int
@@ -58,73 +51,76 @@ func NewLightningClient(rpcclient lnrpc.LightningClient) (*LightningClient, erro
 }
 
 // GetStats fetches the node metrics.
-func (client *LightningClient) GetStats() (*Stats, error) {
+func (client *LightningClient) GetStats() (*lnrpc.GetInfoResponse, error) {
+	ctxb := context.Background()
 
-	var stats Stats
+	// Pending Channels
+	req := &lnrpc.GetInfoRequest{}
+	info, err := client.rpcclient.GetInfo(ctxb, req)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	return info, err
+}
+
+// GetWalletStats get wallet balances
+func (client *LightningClient) GetWalletStats() (*WalletStats, error) {
+	var stats WalletStats
 
 	ctxb := context.Background()
 
-	reqWallet := &lnrpc.WalletBalanceRequest{}
-	wallet, err := client.rpcclient.WalletBalance(ctxb, reqWallet)
+	req := &lnrpc.WalletBalanceRequest{}
+	wallet, err := client.rpcclient.WalletBalance(ctxb, req)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	// Wallet
-	totalBalance := wallet.TotalBalance
-	stats.Wallet.TotalBallance = totalBalance
+	stats.TotalBallance = wallet.TotalBalance
+	stats.UnconfirmedBalance = wallet.UnconfirmedBalance
+	stats.ConfirmedBalance = wallet.ConfirmedBalance
 
-	unconfirmedBalance := wallet.UnconfirmedBalance
-	stats.Wallet.UnconfirmedBalance = unconfirmedBalance
+	return &stats, nil
+}
 
-	confirmedBalance := wallet.ConfirmedBalance
-	stats.Wallet.ConfirmedBalance = confirmedBalance
+// GetInfoStats gets general node info
+func (client *LightningClient) GetInfoStats() (*NodeStats, error) {
+	var stats NodeStats
 
-	// Info
-	reqInfo := &lnrpc.GetInfoRequest{}
-	info, err := client.rpcclient.GetInfo(ctxb, reqInfo)
+	ctxb := context.Background()
+
+	req := &lnrpc.GetInfoRequest{}
+	info, err := client.rpcclient.GetInfo(ctxb, req)
 	if err != nil {
 		log.Fatal(err)
 	}
-	peers := info.NumPeers
-	stats.Node.Peers = peers
+	stats.Peers = info.NumPeers
+	stats.InactiveChannels = info.NumInactiveChannels
+	stats.ActiveChannels = info.NumActiveChannels
+	stats.PendingChannels = info.NumPendingChannels
+	stats.BlockHeight = info.BlockHeight
+	stats.SyncedToChain = boolToInt(info.SyncedToChain)
 
-	numInactiveChannels := info.NumInactiveChannels
-	stats.Node.InactiveChannels = numInactiveChannels
+	return &stats, nil
+}
 
-	numActiveChannels := info.NumActiveChannels
-	stats.Node.ActiveChannels = numActiveChannels
+// GetPendingChannelsStats get pending channels status
+func (client *LightningClient) GetPendingChannelsStats() (*PendingChannelsStats, error) {
+	var stats PendingChannelsStats
 
-	numPendingChannels := info.NumPendingChannels
-	stats.Node.PendingChannels = numPendingChannels
+	ctxb := context.Background()
 
-	blockHeight := info.BlockHeight
-	stats.Node.BlockHeight = blockHeight
-
-	syncedToChain := info.SyncedToChain
-	stats.Node.SyncedToChain = boolToInt(syncedToChain)
-
-	// Pending Channels
-	reqPendingChannels := &lnrpc.PendingChannelsRequest{}
-	pendingChannels, err := client.rpcclient.PendingChannels(ctxb, reqPendingChannels)
+	req := &lnrpc.PendingChannelsRequest{}
+	info, err := client.rpcclient.PendingChannels(ctxb, req)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	totalLimboBalance := pendingChannels.TotalLimboBalance
-	stats.PendingChannels.TotalLimboBalance = totalLimboBalance
-
-	pendingOpenChannels := pendingChannels.PendingOpenChannels
-	stats.PendingChannels.PendingOpenChannels = len(pendingOpenChannels)
-
-	pendingClosingChannels := pendingChannels.PendingClosingChannels
-	stats.PendingChannels.PendingClosingChannels = len(pendingClosingChannels)
-
-	pendingForceClosingChannels := pendingChannels.PendingForceClosingChannels
-	stats.PendingChannels.PendingForceClosingChannels = len(pendingForceClosingChannels)
-
-	waitingCloseChannels := pendingChannels.WaitingCloseChannels
-	stats.PendingChannels.WaitingCloseChannels = len(waitingCloseChannels)
+	stats.TotalLimboBalance = info.TotalLimboBalance
+	stats.PendingOpenChannels = len(info.PendingOpenChannels)
+	stats.PendingClosingChannels = len(info.PendingClosingChannels)
+	stats.PendingForceClosingChannels = len(info.PendingForceClosingChannels)
+	stats.WaitingCloseChannels = len(info.WaitingCloseChannels)
 
 	return &stats, nil
 }
